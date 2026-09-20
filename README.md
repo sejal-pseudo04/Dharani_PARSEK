@@ -1,87 +1,190 @@
-# Dharani Phase 2
+# Dharani
 
-**Team:** PARSEK  
-**Tagline:** *From aerial evidence to verified land records.*  
-**Problem statement:** SIH 2026 PS 26012
+### From aerial evidence to verified land records.
 
-This version adds the mandatory drone-input workflow to the working Phase 1 review dashboard.
+**Team PARSEK · Smart India Hackathon 2026 · Problem Statement 26012**
 
-All five workflow sections are functional: Drone Input, Processing, Map Workspace, Field Verification and Approved Records. Reviews of uploaded features persist in GeoJSON, field notes carry GPS coordinates and language, verified records receive working QR codes, and processing/review actions are recorded in an audit trail.
+Dharani is a human-in-the-loop GeoAI prototype that converts georeferenced drone-survey data into reviewable land-use features. It accepts an RGB orthomosaic, a Digital Surface Model (DSM), and a Digital Terrain Model (DTM); aligns the rasters; extracts candidate buildings, vegetation, and surface corridors; calculates feature-level confidence and screening risk; and routes uncertain cases to field verification before approval.
 
-## What is real in Phase 2
+The goal is not to replace surveyors. Dharani helps them focus their attention where it matters most while preserving human approval, field evidence, and a transparent audit trail.
 
-- Upload of RGB orthomosaic, DSM and DTM GeoTIFF files
-- CRS and geographic-overlap validation
-- Automatic DSM/DTM reprojection and resampling onto the RGB grid when CRS, size, resolution or pixel alignment differs
-- Real `nDSM = DSM - DTM` calculation
-- Real VDVI calculation from RGB bands
-- Building, vegetation and surface-corridor baseline masks
-- Raster-to-GeoJSON vector conversion
-- Drone-image, nDSM, VDVI and classification overlays
-- Clickable extracted candidates with evidence and confidence
-- Per-feature confidence calculated from height, edge, spectral and shadow evidence
-- Uploaded-feature screening risks with type, severity, explanation and recommended action
-- Confidence and Risk map modes that recolour the uploaded GeoJSON vectors
-- Existing review and GPS field-note workflow
+> **Prototype status:** This repository contains a working decision-support prototype. Its risk indicators are screening alerts—not legal findings or authoritative cadastral boundaries.
 
-## Honest limitation
+## Why Dharani?
 
-The included extraction is a real geospatial baseline based on height, colour and geometry rules. It does not claim to run trained DeepLabV3+ or D-LinkNet checkpoints. Those models require suitable aerial training data and compatible `.pth` weights. Dharani already provides the input/output contract where those model adapters will be added.
+Many mapping workflows stop after drawing shapes from aerial imagery. In real land administration, that is only the beginning: imagery may be unclear, datasets may use different coordinate systems, extracted geometry may be uncertain, and sensitive cases require physical verification.
 
-Risk results are screening alerts, not legal conclusions. The current pipeline can flag patterns such as an elevated structure beside a detected access corridor, vegetation touching a corridor, weak corridor continuity or incomplete geometry at the survey edge. A legal parcel-overlap or encroachment finding requires an authoritative cadastral parcel or approved-road reference layer.
+Dharani connects the complete workflow:
 
-The three inputs no longer need identical width, height, CRS, resolution or pixel origin. Dharani uses the RGB orthomosaic as the reference grid and aligns the DSM and DTM automatically. The files must still describe the same geographic location; unrelated surveys are rejected.
+| Conventional workflow | Dharani |
+|---|---|
+| Manual inspection of every area | Prioritized review using confidence and risk |
+| Misaligned rasters require preprocessing in another GIS tool | DSM and DTM are automatically aligned to the RGB grid |
+| AI output may be accepted without explanation | Every feature includes evidence, confidence, risk, and a recommended action |
+| Field observations remain separate from the map | GPS-tagged multilingual notes attach directly to the feature |
+| Final geometry is difficult to retrieve in the field | Approved records receive a QR-linked map reference |
+| Changes are difficult to trace | Processing and review actions appear in an audit trail |
 
-## Required software
+## Key innovations
 
-- Windows 10 or 11
-- Python 3.12
-- VS Code
-- Internet connection for installation and OpenStreetMap tiles
+### 1. Color-Coded Trust Filter
 
-Do not use Python 3.14 for this project. On a computer containing multiple versions, always create the environment with `py -3.12`.
+Every extracted feature receives a geometry-confidence score and an easy traffic-light category:
 
-## Step 1: Open the project
+- **Green — high confidence:** suitable for quick administrative review.
+- **Yellow — medium confidence:** requires closer visual inspection.
+- **Red — low confidence:** automatically prioritized for field verification.
 
-1. Extract `Dharani_PARSEK_Phase2.zip`.
-2. Open VS Code.
-3. Select **File > Open Folder**.
-4. Open the `dharani-phase2` folder.
-5. Select **Terminal > New Terminal**.
+The score combines available height, spectral, edge, shadow, and geometry evidence. It expresses how reliable the extracted shape appears—not whether the ownership claim is legally valid.
 
-## Step 2: Confirm Python 3.12
+### 2. Explainable Risk Screening
 
-```powershell
-py -3.12 --version
+Confidence and risk answer different questions:
+
+- **Confidence:** “How certain is the system about this geometry?”
+- **Risk:** “If this pattern is real, how urgently should a human inspect it?”
+
+For example, a clearly visible structure may have high geometry confidence but still receive a high-priority alert because it touches a detected access corridor. Each alert contains a type, severity, numerical score, plain-language explanation, and recommended action.
+
+### 3. Human-in-the-Loop Field Verification
+
+Cases are sorted into a priority queue. A field officer can inspect the mapped evidence, capture the current GPS position, dictate or type a note in a selected language, and mark the feature as verified, rejected, or requiring field work. Browser speech recognition is available where supported.
+
+### 4. QR-Linked Approved Records
+
+After human approval, Dharani generates a QR code for the verified feature. It provides a fast bridge between a physical record and its corresponding digital geometry.
+
+### 5. Transparent Audit Trail
+
+Survey processing, field notes, and review decisions are recorded with timestamps and reviewer information. Approved data can be exported as GeoJSON for use in GIS software.
+
+## End-to-end workflow
+
+```mermaid
+flowchart TD
+    A["Upload RGB + DSM + DTM"] --> B["Validate CRS and geographic overlap"]
+    B --> C["Align DSM and DTM to RGB grid"]
+    C --> D["Generate nDSM, VDVI and edge evidence"]
+    D --> E["Extract candidate vectors"]
+    E --> F["Calculate confidence and screening risk"]
+    F --> G{"Human decision"}
+    G -->|Needs evidence| H["GPS-tagged field verification"]
+    H --> G
+    G -->|Approved| I["QR record + audit trail + GeoJSON export"]
+    G -->|Rejected| J["Rejected record"]
 ```
 
-The response should begin with `Python 3.12`.
+## The five-screen prototype
 
-## Step 3: Create the virtual environment
+1. **Drone Input** — uploads the three mandatory georeferenced GeoTIFFs and explains validation requirements.
+2. **Processing** — shows alignment, evidence generation, vector extraction, and trust-screening progress.
+3. **Map Workspace** — displays RGB, nDSM, VDVI, classification, and extracted vectors in confidence, risk, or land-use mode.
+4. **Field Verification** — provides a prioritized queue, feature evidence, GPS notes, language selection, speech-to-text, and review actions.
+5. **Approved Records** — shows verified features, reviewer information, QR codes, audit events, and GeoJSON export.
+
+## What the current prototype processes
+
+### Inputs
+
+| Input | Meaning | Minimum requirement |
+|---|---|---|
+| RGB orthomosaic | Georeferenced aerial/drone image | GeoTIFF with a CRS and at least 3 bands |
+| DSM | Elevation of terrain and objects such as buildings/trees | Single-band GeoTIFF with a CRS |
+| DTM | Bare-earth terrain elevation | Single-band GeoTIFF with a CRS |
+
+RGB is the reference grid. DSM and DTM may have a different CRS, resolution, width, height, extent, or pixel origin; Dharani reprojects and resamples them automatically. The rasters must still describe the same survey area and use compatible height units. Inputs with less than 5% geographic overlap are rejected to prevent misleading output.
+
+### Derived evidence
+
+- **nDSM = DSM − DTM:** approximate object height above the local terrain.
+- **VDVI:** visible-band vegetation evidence calculated from the RGB image.
+- **Image-edge and shadow evidence:** supports geometry confidence estimation.
+- **Classification preview:** color-coded building, vegetation, corridor, and background masks.
+- **GeoJSON candidates:** clickable vector features containing evidence and review metadata.
+
+### Extracted classes
+
+In this project, a **class** means a mapped feature category. The prototype extracts:
+
+- Building candidates
+- Vegetation
+- Surface-corridor candidates
+
+Area statistics by class therefore mean the total mapped area belonging to each category—for example, the total square metres classified as buildings versus vegetation.
+
+## Technology stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Frontend | HTML, CSS, JavaScript | Five-screen responsive user interface |
+| Web GIS | Leaflet + OpenStreetMap | Interactive geospatial visualization |
+| Backend API | FastAPI + Pydantic | Upload, processing, review, notes, records, and exports |
+| Geospatial processing | Rasterio + NumPy | GeoTIFF validation, reprojection, resampling, and raster calculations |
+| Image processing | OpenCV + Pillow | Masks, morphology, evidence layers, and previews |
+| Data exchange | GeoJSON | Feature geometry and attributes |
+| QR generation | `qrcode` | QR-linked verified records |
+| Testing | Pytest + HTTPX | API and end-to-end workflow tests |
+
+## Project structure
+
+```text
+dharani-phase2/
+├── app.py                         # FastAPI application and workflow APIs
+├── processing.py                  # Raster alignment, evidence, extraction and scoring
+├── requirements.txt               # Python dependencies
+├── static/
+│   ├── index.html                 # Five workflow screens
+│   ├── styles.css                 # Interface styling
+│   └── app.js                     # Map, uploads and review interactions
+├── demo/
+│   ├── generate_demo_inputs.py    # Recreates the learning GeoTIFF dataset
+│   └── generated/                 # Ready-to-upload RGB, DSM and DTM files
+├── data/
+│   ├── parcels.geojson            # Built-in demonstration parcels
+│   └── surveys/latest/            # Latest processed survey and audit data
+└── tests/
+    └── test_api.py                # API, raster alignment and workflow tests
+```
+
+## Quick start on Windows
+
+### Prerequisites
+
+- Windows 10 or 11
+- Python **3.12**
+- VS Code
+- Internet access during dependency installation and for OpenStreetMap tiles
+
+> Use Python 3.12 for this repository. The pinned geospatial dependencies may not provide compatible wheels for Python 3.14.
+
+### 1. Open the project
+
+Extract the repository, open the project folder in VS Code, and select **Terminal → New Terminal**.
+
+### 2. Create and activate a virtual environment
+
+Run each command once:
 
 ```powershell
 py -3.12 -m venv .venv
-```
-
-Activate it:
-
-```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .venv\Scripts\Activate.ps1
 ```
 
-The terminal should now begin with `(.venv)`.
+Confirm that the environment is using Python 3.12:
 
-## Step 4: Install the packages
+```powershell
+python --version
+```
+
+### 3. Install dependencies
 
 ```powershell
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Rasterio and OpenCV are larger than the Phase 1 packages, so installation can take several minutes.
-
-## Step 5: Run the tests
+### 4. Run the test suite
 
 ```powershell
 python -m pytest -q
@@ -93,15 +196,19 @@ Expected result:
 7 passed
 ```
 
-The fifth test creates real GeoTIFFs, processes them and checks the output layers.
+Deprecation warnings from third-party libraries are harmless for this prototype if all seven tests pass.
 
-## Step 6: Generate the learning dataset
+### 5. Start the application
 
 ```powershell
-python -m demo.generate_demo_inputs
+python -m uvicorn app:app --reload
 ```
 
-The command creates:
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) and keep the terminal running.
+
+## Run the complete demo
+
+The repository already includes three compatible sample files:
 
 ```text
 demo/generated/demo_rgb.tif
@@ -109,100 +216,82 @@ demo/generated/demo_dsm.tif
 demo/generated/demo_dtm.tif
 ```
 
-These are aligned, georeferenced files designed for learning the complete upload workflow.
-
-## Step 7: Start Dharani
+If they are missing, recreate them with:
 
 ```powershell
-python -m uvicorn app:app --reload
+python -m demo.generate_demo_inputs
 ```
 
-Open:
+Then:
 
-```text
-http://127.0.0.1:8000
-```
+1. Open **Drone Input**.
+2. Select the RGB, DSM, and DTM files listed above.
+3. Click **Validate and process survey**.
+4. Watch the stages on **Processing**.
+5. Inspect candidates and switch between **Confidence**, **Risk**, and **Land Use** in **Map Workspace**.
+6. Open **Field Verification** and select a priority case.
+7. Add a GPS-tagged field note, then approve, reject, or request field verification.
+8. Open **Approved Records** to view the QR code and audit history.
+9. Click **Export GeoJSON** to download the reviewed feature collection.
 
-Keep this terminal running.
+## API overview
 
-## Step 8: Upload the mandatory inputs
+FastAPI also exposes interactive documentation at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) while the server is running.
 
-In the **Drone survey input** section:
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/api/health` | Service health check |
+| `GET` | `/api/project` | Project identity and tagline |
+| `POST` | `/api/surveys/upload` | Upload and process RGB, DSM, and DTM |
+| `GET` | `/api/surveys/latest` | Latest survey metadata and statistics |
+| `GET` | `/api/surveys/latest/features` | Extracted GeoJSON features |
+| `GET` | `/api/surveys/latest/review-queue` | Prioritized human-review cases |
+| `PATCH` | `/api/surveys/latest/features/{feature_id}/review` | Save a review decision |
+| `POST` | `/api/surveys/latest/features/{feature_id}/field-notes` | Attach a GPS-tagged field note |
+| `GET` | `/api/surveys/latest/approved` | Verified feature records |
+| `GET` | `/api/surveys/latest/audit` | Processing and review history |
+| `GET` | `/api/surveys/latest/features/{feature_id}/qr` | QR image for a verified feature |
+| `GET` | `/api/surveys/latest/export` | Download the reviewed GeoJSON collection |
 
-1. Keep or change the project name.
-2. For RGB, choose `demo/generated/demo_rgb.tif`.
-3. For DSM, choose `demo/generated/demo_dsm.tif`.
-4. For DTM, choose `demo/generated/demo_dtm.tif`.
-5. Select **Validate and process survey**.
-6. Wait until the status says **Processing complete**.
+## Testing coverage
 
-The map will move to the uploaded survey and show:
+The automated tests cover:
 
-- Uploaded RGB drone image
-- Extracted vector candidates
-- Layer checkboxes for classification, nDSM and VDVI
-- Candidate evidence and confidence when a feature is selected
+- Health and project APIs
+- Built-in parcel review behavior
+- Real GeoTIFF processing
+- Automatic alignment across different raster grids and coordinate systems
+- Upload-to-review workflow
+- GPS field notes and approval
+- QR generation, audit history, and GeoJSON export
 
-## Step 9: Inspect the layers
+## Honest limitations and roadmap
 
-Use **Visible layers** to toggle:
+The current extraction pipeline is a functional geospatial baseline based on height, visible-band, edge, morphology, and geometry rules. It does **not** claim to execute trained DeepLabV3+, LIGHT, or D-LinkNet checkpoints yet.
 
-- Uploaded drone image
-- Extracted class raster
-- nDSM height layer
-- VDVI vegetation layer
-- Extracted vector candidates
-- Phase 1 demo parcels
+Those models remain appropriate next-stage components:
 
-The Phase 1 parcels remain available so the human-verification workflow can still be demonstrated.
+- **DeepLabV3+** for parcel/land-cover semantic segmentation and boundary evidence
+- **LIGHT-style height-aware fusion** for combining RGB appearance with DSM-derived structure
+- **D-LinkNet** for continuous road and narrow-corridor extraction using an encoder-decoder network with dilated convolutions
 
-## Input rules for real survey data
+Planned engineering work:
 
-All three inputs must:
+1. Collect and label representative Indian drone imagery.
+2. Train and calibrate segmentation models with held-out validation areas.
+3. Replace rule-based masks with versioned model probability adapters.
+4. Add authoritative cadastral and road-reference layers for actual overlap analysis.
+5. Add vertex editing, topology validation, and change comparison.
+6. Store users and survey history in a production database with role-based access.
+7. Support offline field assignments and uploaded audio—not only browser speech-to-text.
+8. Deploy over HTTPS so QR links are reachable from field devices.
 
-- Use `.tif` or `.tiff`
-- Contain a CRS
-- Have the same width and height
-- Have the same pixel size
-- Have the same geographic bounds and alignment
-- Use RGB bands 1, 2 and 3 in the orthomosaic
-- Store DSM and DTM heights in compatible units
+## Important interpretation note
 
-If the files do not align, Dharani stops and explains the validation error instead of producing a misleading map.
+Dharani's outputs support survey and ground-truthing activities. A high risk score does not prove an encroachment, ownership dispute, or legal violation. Final land-record decisions must use authoritative records and approval by qualified government personnel.
 
-## Project files
+## Team
 
-| File | Purpose |
-|---|---|
-| `app.py` | APIs, uploads, review actions and file serving |
-| `processing.py` | Raster validation, nDSM, VDVI, masks and vectorization |
-| `demo/generate_demo_inputs.py` | Generates learning GeoTIFFs |
-| `data/parcels.geojson` | Phase 1 review demonstration data |
-| `static/index.html` | Upload and map workspace structure |
-| `static/styles.css` | Dharani interface styling |
-| `static/app.js` | Upload, layers, map interaction and reviews |
-| `tests/test_api.py` | API and real-raster processing tests |
+Built by **Team PARSEK** for **Smart India Hackathon 2026 — PS 26012**.
 
-## Stopping and restarting
-
-Stop the server with `Ctrl+C`.
-
-On a later day, open the folder and run:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.venv\Scripts\Activate.ps1
-python -m uvicorn app:app --reload
-```
-
-You do not need to reinstall packages unless `requirements.txt` changes.
-
-## Next engineering phase
-
-1. Collect and label aerial training imagery.
-2. Fine-tune DeepLabV3+ for buildings, land cover and boundary evidence.
-3. Train or integrate D-LinkNet for road extraction.
-4. Add model checkpoint configuration and GPU inference.
-5. Replace baseline candidate masks with calibrated model probabilities.
-6. Add parcel vertex editing, topology checks and legacy-map comparison.
-7. Add offline field assignments, voice capture and QR generation.
+**Dharani — From aerial evidence to verified land records.**
