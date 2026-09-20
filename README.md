@@ -1,4 +1,4 @@
-# Dharani Phase 2
+# Dharani 
 
 **Team:** PARSEK  
 **Tagline:** *From aerial evidence to verified land records.*  
