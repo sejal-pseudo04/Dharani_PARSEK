@@ -1,0 +1,82 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "parcel_id": "P-401",
+        "owner_display": "Record protected",
+        "area_m2": 910,
+        "land_use_class": "Residential",
+        "confidence": 0.93,
+        "boundary_evidence": ["wall", "road_edge", "legacy_cadastral_line"],
+        "risk_type": "none_detected",
+        "risk_severity": "low",
+        "risk_explanation": "No significant geometric or record discrepancy detected.",
+        "status": "pending",
+        "reviewer": null,
+        "field_notes": [],
+        "audit_log": []
+      },
+      "geometry": {"type": "Polygon", "coordinates": [[[73.85650,18.52080],[73.85700,18.52080],[73.85700,18.52125],[73.85650,18.52125],[73.85650,18.52080]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "parcel_id": "P-402",
+        "owner_display": "Record protected",
+        "area_m2": 840,
+        "land_use_class": "Residential",
+        "confidence": 0.71,
+        "boundary_evidence": ["wall", "building_edge", "inferred_boundary"],
+        "risk_type": "record_discrepancy",
+        "risk_severity": "high",
+        "risk_explanation": "The visible western wall differs from the legacy cadastral line. Field verification is required; this is not a legal conclusion.",
+        "status": "field_required",
+        "reviewer": null,
+        "field_notes": [],
+        "audit_log": []
+      },
+      "geometry": {"type": "Polygon", "coordinates": [[[73.85703,18.52080],[73.85748,18.52083],[73.85746,18.52125],[73.85700,18.52125],[73.85703,18.52080]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "parcel_id": "P-403",
+        "owner_display": "Record protected",
+        "area_m2": 1120,
+        "land_use_class": "Open Land",
+        "confidence": 0.48,
+        "boundary_evidence": ["vegetation_edge", "inferred_boundary"],
+        "risk_type": "evidence_quality",
+        "risk_severity": "medium",
+        "risk_explanation": "Vegetation obscures two boundary segments, so geometry needs field confirmation.",
+        "status": "field_required",
+        "reviewer": null,
+        "field_notes": [],
+        "audit_log": []
+      },
+      "geometry": {"type": "Polygon", "coordinates": [[[73.85650,18.52128],[73.85705,18.52128],[73.85702,18.52180],[73.85652,18.52178],[73.85650,18.52128]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "parcel_id": "P-404",
+        "owner_display": "Record protected",
+        "area_m2": 960,
+        "land_use_class": "Commercial",
+        "confidence": 0.86,
+        "boundary_evidence": ["wall", "road_edge", "survey_control_point"],
+        "risk_type": "possible_road_encroachment",
+        "risk_severity": "critical",
+        "risk_explanation": "A structure appears to cross the mapped road edge. Official verification is required before any conclusion.",
+        "status": "pending",
+        "reviewer": null,
+        "field_notes": [],
+        "audit_log": []
+      },
+      "geometry": {"type": "Polygon", "coordinates": [[[73.85708,18.52128],[73.85752,18.52128],[73.85755,18.52178],[73.85703,18.52180],[73.85708,18.52128]]]}
+    }
+  ]
+}
+

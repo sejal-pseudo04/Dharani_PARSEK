@@ -1,0 +1,51 @@
+{
+  "status": "completed",
+  "input": {
+    "width": 7980,
+    "height": 10200,
+    "crs": "EPSG:6348",
+    "bands": 3
+  },
+  "processing_size": {
+    "width": 801,
+    "height": 1024
+  },
+  "alignment": {
+    "reference_grid": "RGB orthomosaic",
+    "auto_aligned": true,
+    "method": "on-the-fly CRS reprojection and bilinear resampling to the RGB grid",
+    "dsm_rgb_coverage_percent": 88.7,
+    "dtm_rgb_coverage_percent": 88.7
+  },
+  "bounds_wgs84": [
+    -70.91838349659781,
+    41.649912443951564,
+    -70.91345827323222,
+    41.65458340537807
+  ],
+  "layers": {
+    "rgb": "/survey-files/latest/rgb.png",
+    "ndsm": "/survey-files/latest/ndsm.png",
+    "vdvi": "/survey-files/latest/vdvi.png",
+    "classification": "/survey-files/latest/classification.png",
+    "features": "/api/surveys/latest/features"
+  },
+  "counts": {
+    "building_candidates": 80,
+    "vegetation_features": 14,
+    "corridor_candidates": 11
+  },
+  "risk_counts": {
+    "critical": 0,
+    "high": 80,
+    "medium": 14,
+    "low": 11
+  },
+  "confidence_counts": {
+    "high": 10,
+    "medium": 75,
+    "low": 20
+  },
+  "disclosure": "Real nDSM/VDVI preprocessing with rule-based baseline candidates. DeepLabV3+ and D-LinkNet require trained aerial checkpoints before their names can be claimed in inference.",
+  "project_name": "Dharani Pilot Survey"
+}

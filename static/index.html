@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dharani | PARSEK</title>
+  <link rel="preconnect" href="https://unpkg.com"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><link rel="stylesheet" href="/static/styles.css?v=4">
+</head>
+<body>
+  <header><div class="brand"><span class="eyebrow">TEAM PARSEK · SIH 2026 PS 26012</span><div class="brand-line"><h1>Dharani</h1><span class="tagline">From aerial evidence to verified land records.</span></div></div><div class="mode"><span class="dot"></span> Human verification enabled</div></header>
+  <nav class="workspace-nav" aria-label="Dharani workflow">
+    <button data-view="input" class="nav-active">1. Drone input</button><button data-view="processing">2. Processing</button><button data-view="map">3. Map workspace</button><button data-view="field">4. Field verification <span id="queue-badge" class="nav-badge">0</span></button><button data-view="approved">5. Approved records <span id="approved-badge" class="nav-badge">0</span></button>
+  </nav>
+  <main id="app-shell">
+    <section class="view active-view" data-page="input">
+      <div class="page-header"><div><span class="step-label">STEP 01</span><h2>Drone survey input</h2><p>Start with real, georeferenced aerial evidence.</p></div><span class="required-label">3 FILES MANDATORY</span></div>
+      <div class="input-grid">
+        <div class="card upload-card"><form id="survey-form">
+          <label>Project name<input name="project_name" value="Dharani Pilot Survey" required minlength="2"></label>
+          <label>RGB orthomosaic (.tif)<span>Visible drone image; used as the reference grid.</span><input name="rgb" type="file" accept=".tif,.tiff" required></label>
+          <label>DSM surface heights (.tif)<span>Elevation including buildings, trees and other objects.</span><input name="dsm" type="file" accept=".tif,.tiff" required></label>
+          <label>DTM ground heights (.tif)<span>Bare-earth elevation used to calculate object height.</span><input name="dtm" type="file" accept=".tif,.tiff" required></label>
+          <button id="process-button" class="primary large-button" type="submit">Validate, align and process survey</button>
+        </form></div>
+        <div class="card guidance-card"><h3>Automatic geospatial preparation</h3><p>Dharani uses the RGB orthomosaic as the master grid. DSM and DTM are automatically reprojected and resampled when their CRS, size or pixel alignment differs.</p><div class="mini-flow"><span>RGB + DSM + DTM</span><b>→</b><span>Grid alignment</span><b>→</b><span>Geo-AI screening</span></div><h3>Input safety checks</h3><ul><li>Valid coordinate reference system</li><li>At least three RGB bands</li><li>Same geographic survey area</li><li>Readable GeoTIFF structure</li></ul><button class="secondary goto" data-target="map">Open existing map workspace</button></div>
+      </div>
+    </section>
+    <section class="view" data-page="processing">
+      <div class="page-header"><div><span class="step-label">STEP 02</span><h2>Processing and quality control</h2><p>Follow alignment, evidence generation, extraction and risk scoring.</p></div><span id="pipeline-status" class="status-chip waiting">WAITING FOR SURVEY</span></div>
+      <div id="processing" class="card processing-card"><div class="progress-track"><div id="progress-bar"></div></div><strong id="progress-title">No survey has been uploaded</strong><span id="progress-detail">Return to Drone input to begin.</span></div>
+      <div class="pipeline-grid"><article class="pipeline-stage"><span>01</span><h3>Validate & align</h3><p>CRS, overlap, resolution and pixel-grid checks.</p></article><article class="pipeline-stage"><span>02</span><h3>Evidence layers</h3><p>nDSM heights, VDVI vegetation and image edges.</p></article><article class="pipeline-stage"><span>03</span><h3>Extract vectors</h3><p>Buildings, vegetation and surface corridors.</p></article><article class="pipeline-stage"><span>04</span><h3>Trust screening</h3><p>Confidence, risk, explanation and review route.</p></article></div>
+      <div class="processing-results"><div id="survey-result" class="card survey-result">No processed survey yet.</div><div id="process-stats" class="stats wide-stats"></div></div><div class="page-actions"><button class="secondary goto" data-target="input">Back to input</button><button class="primary goto" data-target="map">Continue to map workspace</button></div>
+    </section>
+    <section class="view map-view" data-page="map">
+      <aside><section><h2>Survey overview</h2><div id="stats" class="stats"></div></section><section><h2>Visible layers</h2><div class="layer-list"><label><input data-layer="rgb" type="checkbox" disabled> Uploaded drone image</label><label><input data-layer="classification" type="checkbox" disabled> Extracted class raster</label><label><input data-layer="ndsm" type="checkbox" disabled> nDSM height layer</label><label><input data-layer="vdvi" type="checkbox" disabled> VDVI vegetation layer</label><label><input data-layer="features" type="checkbox" disabled> Extracted vector candidates</label><label><input data-layer="demo" type="checkbox" checked> Phase 1 demo parcels</label></div></section><section><h2>Map mode</h2><div class="segmented"><button data-mode="confidence" class="active">Confidence</button><button data-mode="risk">Risk</button><button data-mode="landuse">Land use</button></div><div id="legend" class="legend"></div></section><section id="details" class="details muted">Upload a drone survey or select a feature to inspect evidence, confidence and risk.</section></aside><div id="map"></div>
+    </section>
+    <section class="view" data-page="field">
+      <div class="page-header"><div><span class="step-label">STEP 04</span><h2>Field verification</h2><p>Review priority alerts, attach GPS evidence and make a human decision.</p></div><button id="refresh-queue" class="secondary">Refresh queue</button></div><div class="review-layout"><div class="card queue-panel"><div class="panel-title"><h3>Priority review queue</h3><span id="queue-count">0 cases</span></div><div id="review-queue" class="record-list empty-state">Process a survey to create review tasks.</div></div><div id="field-detail" class="card field-detail empty-state">Select a feature from the queue to begin verification.</div></div>
+    </section>
+    <section class="view" data-page="approved">
+      <div class="page-header"><div><span class="step-label">STEP 05</span><h2>Approved records</h2><p>Verified geometries, QR property links and a transparent audit history.</p></div><a class="primary download-link" href="/api/surveys/latest/export" download>Export GeoJSON</a></div><div class="approved-layout"><div class="card"><div class="panel-title"><h3>Verified feature records</h3><span id="approved-count">0 approved</span></div><div id="approved-records" class="approved-grid empty-state">No records have been approved yet.</div></div><div class="card audit-panel"><h3>Audit trail</h3><div id="audit-list" class="audit-list empty-state">Processing and review events will appear here.</div></div></div>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="/static/app.js?v=4"></script>
+</body></html>
